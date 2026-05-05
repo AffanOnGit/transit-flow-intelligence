@@ -1,0 +1,12 @@
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+pdfplumber>=0.10.0
+pandas>=2.0.0
+pm4py>=2.7.0
+dash>=2.14.0
+dash-cytoscape>=1.0.0
+plotly>=5.18.0
+anthropic>=0.28.0
+folium>=0.15.0
+lxml>=5.0.0
+python-dotenv
