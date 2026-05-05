@@ -1,9 +1,10 @@
 """
-app.py — Main Dash Application for Transit Flow Intelligence
-Tasks 3, 4, and 5
+app.py — Premium Dash Application for Transit Flow Intelligence
+Tasks 3, 4, and 5 with Modern UI/UX
 """
 import dash
 from dash import dcc, html, Input, Output, State, callback
+import dash_bootstrap_components as dbc
 import dash_cytoscape as cyto
 import pandas as pd
 from pathlib import Path
@@ -26,7 +27,19 @@ node_coords = build_node_positions(rows)
 # Initialize AI Agent
 agent = TransitAgent(str(csv_path))
 
-app = dash.Dash(__name__, title="Transit Flow Intelligence")
+# Load Inter font from Google
+external_stylesheets = [
+    dbc.themes.SLATE,
+    "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap",
+    "https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+]
+
+app = dash.Dash(
+    __name__, 
+    title="Transit Flow Intelligence",
+    external_stylesheets=external_stylesheets,
+    suppress_callback_exceptions=True
+)
 
 # Normalise Lat/Lon for Cytoscape
 def normalise_coords(coords):
@@ -38,9 +51,8 @@ def normalise_coords(coords):
     
     norm = {}
     for name, (lat, lon) in coords.items():
-        # Map to 100-900 range
-        x = 100 + (lon - min_lon) / (max_lon - min_lon + 1e-9) * 800
-        y = 900 - (lat - min_lat) / (max_lat - min_lat + 1e-9) * 800
+        x = 100 + (lon - min_lon) / (max_lon - min_lon + 1e-9) * 1200
+        y = 1200 - (lat - min_lat) / (max_lat - min_lat + 1e-9) * 1200
         norm[name] = {"x": x, "y": y}
     return norm
 
@@ -54,7 +66,6 @@ def get_cyto_elements(route_id="All", bottleneck_threshold=1.5):
     filtered_rows = [r for r in rows if route_id == "All" or r["route_id"] == route_id]
     stops_in_view = set(r["stop_name"] for r in filtered_rows)
     
-    # Add Nodes
     for stop in stops_in_view:
         pos = norm_coords.get(stop, {"x": 500, "y": 500})
         nodes.append({
@@ -62,7 +73,6 @@ def get_cyto_elements(route_id="All", bottleneck_threshold=1.5):
             'position': pos
         })
         
-    # Add Edges
     current_edges = [e for e in all_edges if route_id == "All" or e["route_id"] == route_id]
     current_edges = detect_bottlenecks(current_edges, bottleneck_threshold)
     
@@ -83,44 +93,123 @@ def get_cyto_elements(route_id="All", bottleneck_threshold=1.5):
         
     return nodes + edges
 
-app.layout = html.Div(style={'backgroundColor': '#0f172a', 'color': '#f8fafc', 'fontFamily': 'Inter, sans-serif', 'height': '100vh', 'display': 'flex', 'flexDirection': 'column'}, children=[
-    # Header
-    html.Div(style={'padding': '20px', 'backgroundColor': '#1e293b', 'borderBottom': '1px solid #334155', 'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
-        html.H1("Bus Route Process Mining Dashboard", style={'margin': '0', 'fontSize': '24px', 'fontWeight': '700'}),
-        html.Div("CDA Transit Network Analysis", style={'opacity': '0.7'})
-    ]),
-    
-    # Main Content
-    html.Div(style={'display': 'flex', 'flex': '1', 'overflow': 'hidden'}, children=[
-        # Left Panel (Controls & Analytics)
-        html.Div(style={'width': '350px', 'padding': '20px', 'backgroundColor': '#1e293b', 'borderRight': '1px solid #334155', 'overflowY': 'auto'}, children=[
-            html.H3("Filters", style={'marginTop': '0'}),
-            html.Label("Route Selection"),
-            dcc.Dropdown(
-                id='route-filter',
-                options=[{'label': 'All Routes', 'value': 'All'}] + [{'label': r, 'value': r} for r in sorted(list(set(r["route_id"] for r in rows)))],
-                value='All',
-                style={'color': '#000', 'marginBottom': '20px'}
-            ),
+# Custom Styles
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            body { font-family: 'Inter', sans-serif; background-color: #020617; }
+            .glass-card {
+                background: rgba(30, 41, 59, 0.7);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 16px;
+                box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            }
+            .sidebar {
+                height: 100vh;
+                padding: 24px;
+                border-right: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .stats-pill {
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.2);
+                padding: 12px;
+                border-radius: 12px;
+                margin-bottom: 12px;
+            }
+            .chat-bubble-user {
+                background: #3b82f6;
+                color: white;
+                padding: 10px 16px;
+                border-radius: 16px 16px 4px 16px;
+                margin-bottom: 12px;
+                align-self: flex-end;
+                max-width: 80%;
+            }
+            .chat-bubble-agent {
+                background: #334155;
+                color: #f1f5f9;
+                padding: 10px 16px;
+                border-radius: 16px 16px 16px 4px;
+                margin-bottom: 12px;
+                align-self: flex-start;
+                max-width: 80%;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .bottleneck-item {
+                border-left: 4px solid #ef4444;
+                background: rgba(239, 68, 68, 0.05);
+                padding: 8px 12px;
+                margin-bottom: 8px;
+                border-radius: 4px;
+                font-size: 0.9rem;
+            }
+            ::-webkit-scrollbar { width: 6px; }
+            ::-webkit-scrollbar-track { background: transparent; }
+            ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+            ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
+app.layout = dbc.Container(fluid=True, style={'padding': '0', 'overflow': 'hidden'}, children=[
+    dbc.Row(className="g-0", children=[
+        # Left Sidebar
+        dbc.Col(md=3, lg=2, className="sidebar glass-card d-flex flex-column", children=[
+            html.Div(className="mb-4", children=[
+                html.H4("TransitFlow", className="fw-bold text-primary mb-0", style={'letterSpacing': '1px'}),
+                html.P("Intelligence Dashboard", className="text-muted small")
+            ]),
             
-            html.Label("Bottleneck Threshold (Multiplier)"),
-            dcc.Slider(
-                id='bottleneck-slider',
-                min=1.0, max=3.0, step=0.1, value=1.5,
-                marks={1: '1x', 1.5: '1.5x', 2: '2x', 3: '3x'},
-            ),
+            html.Div(className="flex-grow-1", children=[
+                html.Label("Route Network", className="text-muted small fw-bold text-uppercase mb-2"),
+                dcc.Dropdown(
+                    id='route-filter',
+                    options=[{'label': 'All CDA Routes', 'value': 'All'}] + [{'label': f"Route {r}", 'value': r} for r in sorted(list(set(r["route_id"] for r in rows)))],
+                    value='All',
+                    className="mb-4 custom-dropdown",
+                    style={'backgroundColor': 'transparent', 'color': '#000'}
+                ),
+                
+                html.Label("Bottleneck Threshold", className="text-muted small fw-bold text-uppercase mb-2"),
+                dcc.Slider(
+                    id='bottleneck-slider',
+                    min=1.0, max=3.0, step=0.1, value=1.5,
+                    marks={1: '1x', 2: '2x', 3: '3x'},
+                    className="mb-5"
+                ),
+                
+                html.Hr(style={'opacity': '0.1'}),
+                
+                html.H6("Network Performance", className="text-white mb-3"),
+                html.Div(id='throughput-stats'),
+                
+                html.H6("Critical Bottlenecks", className="text-white mt-4 mb-3"),
+                html.Div(id='bottleneck-list')
+            ]),
             
-            html.Hr(style={'margin': '30px 0', 'opacity': '0.2'}),
-            
-            html.H3("Route Performance"),
-            html.Div(id='throughput-stats', style={'backgroundColor': '#334155', 'padding': '15px', 'borderRadius': '8px', 'marginBottom': '20px'}),
-            
-            html.H3("Top Bottlenecks"),
-            html.Div(id='bottleneck-list')
+            html.Div(className="mt-auto pt-3", style={'borderTop': '1px solid rgba(255,255,255,0.05)'}, children=[
+                html.P("© 2026 PMS Group 4", className="text-muted extra-small mb-0")
+            ])
         ]),
         
-        # Center Panel (Map)
-        html.Div(style={'flex': '1', 'position': 'relative', 'backgroundColor': '#020617'}, children=[
+        # Main Map View
+        dbc.Col(md=6, lg=7, style={'height': '100vh', 'position': 'relative'}, children=[
             cyto.Cytoscape(
                 id='transit-map',
                 layout={'name': 'preset'},
@@ -131,25 +220,32 @@ app.layout = html.Div(style={'backgroundColor': '#0f172a', 'color': '#f8fafc', '
                         'selector': 'node',
                         'style': {
                             'label': 'data(label)',
-                            'color': '#f8fafc',
-                            'background-color': '#3b82f6',
+                            'color': '#cbd5e1',
+                            'background-color': '#6366f1',
                             'font-size': '12px',
-                            'width': '20px',
-                            'height': '20px'
+                            'width': '24px',
+                            'height': '24px',
+                            'border-width': '3px',
+                            'border-color': '#1e1b4b',
+                            'text-valign': 'bottom',
+                            'text-margin-y': 8,
+                            'font-weight': '600'
                         }
                     },
                     {
                         'selector': 'edge',
                         'style': {
                             'label': 'data(label)',
-                            'width': 2,
-                            'line-color': '#64748b',
-                            'target-arrow-color': '#64748b',
+                            'width': 3,
+                            'line-color': '#334155',
+                            'target-arrow-color': '#334155',
                             'target-arrow-shape': 'triangle',
                             'curve-style': 'bezier',
                             'font-size': '10px',
-                            'color': '#cbd5e1',
-                            'text-margin-y': -10
+                            'color': '#94a3b8',
+                            'text-rotation': 'autorotate',
+                            'text-margin-y': -12,
+                            'opacity': 0.8
                         }
                     },
                     {
@@ -157,23 +253,41 @@ app.layout = html.Div(style={'backgroundColor': '#0f172a', 'color': '#f8fafc', '
                         'style': {
                             'line-color': '#ef4444',
                             'line-style': 'dashed',
-                            'width': 4,
-                            'target-arrow-color': '#ef4444'
+                            'width': 5,
+                            'target-arrow-color': '#ef4444',
+                            'opacity': 1
+                        }
+                    },
+                    {
+                        'selector': 'node:selected',
+                        'style': {
+                            'background-color': '#f59e0b',
+                            'width': '32px',
+                            'height': '32px',
+                            'color': '#fbbf24'
                         }
                     }
                 ]
             ),
-            # Edge Click Detail
-            html.Div(id='edge-detail', style={'position': 'absolute', 'bottom': '20px', 'right': '20px', 'backgroundColor': '#1e293b', 'padding': '15px', 'borderRadius': '8px', 'border': '1px solid #334155', 'display': 'none'})
+            
+            # Floating Tooltip
+            html.Div(id='edge-detail', className="glass-card", style={'position': 'absolute', 'bottom': '30px', 'left': '30px', 'padding': '20px', 'display': 'none', 'zIndex': '1000'})
         ]),
         
-        # Right Panel (AI Agent)
-        html.Div(style={'width': '400px', 'padding': '20px', 'backgroundColor': '#1e293b', 'borderLeft': '1px solid #334155', 'display': 'flex', 'flexDirection': 'column'}, children=[
-            html.H3("AI Trip Planner", style={'marginTop': '0'}),
-            html.Div(id='chat-history', style={'flex': '1', 'overflowY': 'auto', 'marginBottom': '20px', 'padding': '10px', 'backgroundColor': '#0f172a', 'borderRadius': '8px', 'fontSize': '14px'}),
-            html.Div(style={'display': 'flex'}, children=[
-                dcc.Input(id='chat-input', type='text', placeholder='Ask about routes...', style={'flex': '1', 'padding': '10px', 'borderRadius': '4px 0 0 4px', 'border': 'none'}),
-                html.Button("Send", id='chat-send', style={'padding': '10px 20px', 'backgroundColor': '#3b82f6', 'color': '#fff', 'border': 'none', 'borderRadius': '0 4px 4px 0', 'cursor': 'pointer'})
+        # Right Chat Sidebar
+        dbc.Col(md=3, lg=3, className="sidebar glass-card d-flex flex-column", children=[
+            html.Div(className="mb-4 d-flex align-items-center", children=[
+                html.I(className="fas fa-robot text-primary me-2", style={'fontSize': '20px'}),
+                html.H5("AI Trip Planner", className="mb-0 text-white")
+            ]),
+            
+            html.Div(id='chat-history', className="flex-grow-1 d-flex flex-column", style={'overflowY': 'auto', 'padding': '5px'}),
+            
+            html.Div(className="mt-3", children=[
+                dbc.InputGroup(children=[
+                    dbc.Input(id='chat-input', placeholder="Where would you like to go?", style={'backgroundColor': '#0f172a', 'border': '1px solid #334155', 'color': 'white'}),
+                    dbc.Button(html.I(className="fas fa-paper-plane"), id='chat-send', color="primary")
+                ])
             ])
         ])
     ])
@@ -187,29 +301,35 @@ app.layout = html.Div(style={'backgroundColor': '#0f172a', 'color': '#f8fafc', '
      Input('bottleneck-slider', 'value')]
 )
 def update_dashboard(route_id, threshold):
-    # Map Elements
     elements = get_cyto_elements(route_id, threshold)
     
-    # Throughput Stats
     filtered_tp = [t for t in throughput_data if route_id == "All" or t["route_id"] == route_id]
     stats = throughput_summary(filtered_tp)
+    
     tp_content = [
-        html.P(f"Avg: {stats['avg']}"),
-        html.P(f"Min: {stats['min']}"),
-        html.P(f"Max: {stats['max']}")
+        html.Div(className="stats-pill", children=[
+            html.Div("Average Trip", className="text-muted small"),
+            html.Div(stats['avg'], className="fw-bold text-white fs-5")
+        ]),
+        html.Div(className="stats-pill", children=[
+            html.Div("Fastest Trip", className="text-muted small"),
+            html.Div(stats['min'], className="fw-bold text-success fs-5")
+        ])
     ]
     
-    # Bottlenecks
     current_edges = [e for e in all_edges if route_id == "All" or e["route_id"] == route_id]
     bottlenecks = detect_bottlenecks(current_edges, threshold)
     top_3 = [b for b in bottlenecks if b.get("is_bottleneck")][:3]
     
     if not top_3:
-        bl_content = html.P("No bottlenecks detected at this threshold.", style={'fontStyle': 'italic', 'opacity': '0.5'})
+        bl_content = html.Div("Optimum flow detected.", className="text-muted small italic")
     else:
-        bl_content = html.Ul([
-            html.Li(f"{b['from_stop']} → {b['to_stop']} ({b['label']})") for b in top_3
-        ])
+        bl_content = [
+            html.Div(className="bottleneck-item", children=[
+                html.Div(f"{b['from_stop']} → {b['to_stop']}", className="fw-bold text-white"),
+                html.Div(f"Duration: {b['label']}", className="text-danger small")
+            ]) for b in top_3
+        ]
         
     return elements, tp_content, bl_content
 
@@ -223,12 +343,24 @@ def display_edge_data(data):
         return "", {'display': 'none'}
     
     content = [
-        html.B(f"{data['source']} to {data['target']}"),
-        html.P(f"Route: {data['route']}"),
-        html.P(f"Avg Duration: {data['label']}"),
-        html.P(f"Total Trips: {data['cases']}")
+        html.H6(f"{data['source']} ➔ {data['target']}", className="text-primary fw-bold mb-3"),
+        dbc.Row([
+            dbc.Col([
+                html.Div("Route", className="text-muted small"),
+                html.Div(data['route'], className="fw-bold")
+            ]),
+            dbc.Col([
+                html.Div("Frequency", className="text-muted small"),
+                html.Div(f"{data['cases']} trips", className="fw-bold")
+            ])
+        ]),
+        html.Hr(style={'opacity': '0.1', 'margin': '15px 0'}),
+        html.Div([
+            html.Div("Average Transition Time", className="text-muted small"),
+            html.Div(data['label'], className="fw-bold text-white fs-4")
+        ])
     ]
-    return content, {'position': 'absolute', 'bottom': '20px', 'right': '20px', 'backgroundColor': '#1e293b', 'padding': '15px', 'borderRadius': '8px', 'border': '1px solid #334155', 'display': 'block', 'zIndex': '100'}
+    return content, {'position': 'absolute', 'bottom': '30px', 'left': '30px', 'padding': '20px', 'display': 'block', 'zIndex': '1000', 'minWidth': '280px'}
 
 @app.callback(
     Output('chat-history', 'children'),
@@ -245,17 +377,13 @@ def chat(n_clicks, user_input, history):
     history = history or []
     
     # User message
-    history.append(html.Div([
-        html.B("You: "), html.Span(user_input)
-    ], style={'marginBottom': '10px', 'color': '#3b82f6'}))
+    history.append(html.Div(user_input, className="chat-bubble-user"))
     
     # Agent response
     response = agent.query(user_input)
-    history.append(html.Div([
-        html.B("Agent: "), html.Span(response)
-    ], style={'marginBottom': '20px'}))
+    history.append(html.Div(response, className="chat-bubble-agent"))
     
     return history, ""
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)

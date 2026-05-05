@@ -10,3 +10,5 @@ anthropic>=0.28.0
 folium>=0.15.0
 lxml>=5.0.0
 python-dotenv
+groq
+dash-bootstrap-components
