@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+pm4py
+python-dotenv
+groq
+anthropic
+pydantic
+python-multipart

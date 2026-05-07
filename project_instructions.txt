@@ -1,0 +1,175 @@
+FAST National University
+Process Mining and Simulation
+SE4009
+Project
+Process Mining: CDA Bus Route Analysis
+Instructor:
+Dr. Isma ul Hassan
+April 23, 2026Submission Guidelines
+Late submissions will NOT be accepted under any circumstances.
+Submission Format
+Submit a single .zip archive named:
+member1-id_member2-id.zip (extend for 3–4 members)
+The archive must contain the following folders and files:
+• report/ — A PDF report documenting all tasks, outputs, analysis, and interpretations. The report
+mustincludescreenshotsofoutputs,processmaps,tracelogs,GUIscreenshots,bottleneckannotations,
+and per-member route maps.
+• code/ — All Python scripts and notebooks used to produce results. Code must be clearly commented
+and structured by task.
+• data/ — The extracted routes.csv and any intermediate event log files.
+Overview
+This project applies process mining techniques to real-world public transport data from the CDA (Capital
+DevelopmentAuthority)busnetworkofIslamabad(cda.gov.pk/cdaTransitMap). Youwillextractstruc-
+tured route data from the published PDF schedules, construct event logs with trace-level granularity, discover
+andvisualiseprocessmodelsacrossallroutes,andbuildaninteractiveGUIenrichedwithtimingandbottleneck
+analytics. An agentic AI component provides natural-language trip-planning over the discovered routes, and a
+personal mapping task grounds each team member in the network topology.
+Mark Distribution
+Task Description Marks
+Task 1 Data Extraction & CSV Generation 10
+Task 2 Trace Log Construction 15
+Task 3 Process Discovery & Interactive GUI 35
+Task 4 Performance & Bottleneck Analytics 10
+Task 5 Agentic AI Trip Planner 15
+Task 6 Personal Route Map — Bonus (per member) 10
+Total 85 + 10 Bonus
+1 Task 1 — Data Extraction & CSV Generation
+10 Marks
+Objective
+Inspect the CDA bus route PDFs available at cda.gov.pk/cdaTransitMap and extract all route data into a
+structured routes.csv file.
+Requirements
+• Download and parse each route PDF from the CDA transit map portal.
+• The output file must contain the relevant columns as described in the PDF schedules (e.g. route identifier,
+stop names, timing).
+Marking Criteria — Task 1
+Correct extraction of all stops from all PDFs 5
+Proper CSV structure and column naming 5
+12 Task 2 — Trace Log Construction
+15 Marks
+Objective
+Construct a process mining event log from the dataset by exporting it as a .xes file that follows the XES
+standard, and validate it using a process mining tool.
+Requirements
+• Generate a single merged .xes file representing the dataset as an event log.
+• Ensure the file strictly adheres to the XES standard, including correct structure, attribute types, times-
+tamps (ISO8601 with timezone), and required metadata (e.g. xes.version="1.0").
+• Import the .xes file into a process mining tool (e.g. ProM, PM4Py, Apromore, or Celonis).
+• Demonstratesuccessfulloadingandanalysisofthelogbyincludingascreenshotshowingtrace/eventstatistics
+or model discovery results.
+Marking Criteria — Task 2
+Valid and XES-compliant .xes file 5
+Successful tool validation, usage, and evidence 10
+3 Task 3 — Process Discovery & Interactive GUI
+35 Marks
+Objective
+Discover a process map from the event logs and present it in an interactive graphical user interface (GUI) that
+supports filtering and rich annotations.
+Requirements
+3a — Process Map Generation (10 marks)
+• Use a process discovery algorithm on the merged event log.
+• The map must show all routes connected, with nodes representing stops and directed edges representing
+transitions.
+• Edge labels must display the transition duration between consecutive stops.
+3b — Route Filter (10 marks)
+• Provide a dropdown or selector to filter the process map by route_id.
+• Selecting FR-01 must display only the sub-graph for that route.
+• Selecting All Routes must display the full connected map.
+3c — Transition Duration on Edges (10 marks)
+• Each directed edge must display the transition time between consecutive stops.
+• Format: PAEC → IMC = 1min45sec (derived from 10:15:05−10:13:20).
+• This is the only required annotation on edges. Additional analytics (throughput, bottleneck info, etc.)
+may be displayed elsewhere in the GUI (e.g. a side panel, tooltip, or summary table) — not necessarily on
+the edges.
+3d — Case Frequency Display (5 marks)
+• Display the number of trips (cases) that traversed each transition.
+• This may be shown on edges, in tooltips, or in a separate panel — any clear presentation is acceptable.
+Marking Criteria — Task 3
+Correct process map from event log 10
+Working route filter with correct sub-graphs 10
+Transition duration labels on edges 10
+Case frequency display (any location in GUI) 5
+24 Task 4 — Performance & Bottleneck Analytics
+10 Marks
+Objective
+Enrich the GUI with statistical timing information and automatically highlight bottlenecks (delays) in the
+network. Analytics may be displayed in any part of the GUI — side panels, summary tables, tooltips, or info
+boxes are all acceptable.
+4a — Throughput Time per Trip (5 marks)
+• Compute the total end-to-end duration for each case: T =t −t .
+total lastdeparture firstarrival
+• Show average, minimum, and maximum trip duration in the GUI.
+• Example: 10:13:00→10:45:00≈32minutes.
+4b — Bottleneck Detection & Highlighting (5 marks)
+• Identify edges whose average transition time exceeds a configurable threshold.
+• Highlight bottleneck edges visually in the process map.
+• Provide a bottleneck summary listing the top-3 slowest transitions anywhere in the GUI (panel, table, or
+tooltip).
+• Example bottleneck: OGTI → CDA if it is consistently slower than other edges.
+Marking Criteria — Task 4
+Throughput time per trip displayed (avg/min/max) 5
+Bottleneck detection and visual highlighting 5
+5 Task 5 — Agentic AI Trip Planner
+15 Marks
+Objective
+Modern process mining platforms such as Celonis demonstrate how agentic AI can be embedded directly into
+a business process context, allowing users to query, navigate, and act on live process data through natural
+language. In this task, you will replicate this idea at the route level: integrate a conversational AI agent into
+yourGUIthatanswersnatural-languagetrip-planningqueriesgroundedinthediscoveredCDAroutedata. The
+choice of model, API, or framework is entirely up to you.
+Requirements
+• Integrate an AI agent that has access to the extracted routes.csv and the discovered process map.
+• The agent must be capable of handling queries such as:
+– “I have to travel from Khanna Pul to NUST Metro Station — what are my options?”
+– “Which route goes through Faizabad?”
+– “What time does the last bus leave from H-9?”
+– “How long does it take to get from Khanna Pul to Faizabad?”
+– “Do any routes connect G-9 Markaz to F-10 Markaz?”
+• Theagentshouldreturn: availableroute(s)andrequiredtransfers,estimatedtraveltimebasedondiscovered
+transition durations, and the next available departure time.
+• Responses must be grounded in the route data — the agent must not hallucinate stops.
+• A chat interface panel must be embedded in the main GUI.
+Example Interaction
+User: I have to travel from Khanna Pul to NUST Metro Station. What are my options?
+Agent: Basedonthecurrentschedule,RouteFR-02stopsatKhannaPul (dep.10:20)andreachesNUST
+Metro Station in approximately 18 minutes (avg). Next departure: 10:35.
+3Marking Criteria — Task 5
+Correct route lookup and path finding 5
+Natural-language response quality 5
+Integration in GUI chat panel 3
+Grounding in route data (no hallucination) 2
+6 Task 6 — Personal Route Map (Per Member) — Bonus
+10 Marks
+Objective
+Eachteammemberindividuallymapsatleastonerouteconnectingtheirhomeaddress(orthenearestbusstop
+to their home) to FAST University.
+Requirements
+• Each member must identify the nearest CDA bus stop to their home address.
+• Construct a trace/path from FAST University to that stop using the available routes.
+• Visualise the personal route on a map.
+• Include in the report: member name, home area, nearest stop, route(s) used, and estimated travel time.
+Example — Member Route
+Member: Ali Raza Home Area: Satellite Town, Rawalpindi
+Nearest Stop: Faizabad Interchange
+Route: Faizabad − F − R − - − 0 → 7 H-9 − F − R − - − 0 → 3 FAST
+Est. Time: ≈28min
+This task is bonus (extra credit) and is NOT part of the 85-mark total.
+Half-hearted or incomplete attempts will not be awarded marks. A good-faith submission looks like the
+example below.
+Example: acceptable personal route map visualisation
+Marking Criteria — Task 6
+Map produced for every team member 4
+Correct stop identification and route tracing 4
+Visualisation quality and report documentation 2
+4Mark Summary
+Complete Mark Distribution
+Task Description Marks
+1 Data Extraction & CSV Generation 10
+2 Trace Log Construction 15
+3 Process Discovery & Interactive GUI 35
+4 Performance & Bottleneck Analytics 10
+5 Agentic AI Trip Planner 15
+Subtotal 85
+6 Personal Route Map — Bonus (per member) +10
+Maximum Possible 85 + 10
+5
