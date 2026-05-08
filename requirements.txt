@@ -12,3 +12,8 @@ lxml>=5.0.0
 python-dotenv
 groq
 dash-bootstrap-components
+pdfminer.six
+fastapi
+uvicorn
+pydantic
+python-multipart
