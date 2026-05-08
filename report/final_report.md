@@ -2,7 +2,6 @@
 
 **Date:** May 8, 2026  
 **Team Size:** 4 Members  
-**Project Status:** 100% Complete  
 
 ---
 
@@ -65,13 +64,13 @@ We generated individual interactive maps for each team member, visualizing their
 ### Member 1: Affan
 ![Member 1 Map](./assets/member_1_affan_map_1778240521268.png)
 
-### Member 2: Team Mate 2
+### Member 2: Saim Zia
 ![Member 2 Map](./assets/member_2_team_mate_2_map_1778240545508.png)
 
-### Member 3: Team Mate 3
+### Member 3: Ahsan Iqbal
 ![Member 3 Map](./assets/member_3_team_mate_3_map_1778240576882.png)
 
-### Member 4: Team Mate 4
+### Member 4: Asim Shehzad
 ![Member 4 Map](./assets/member_4_team_mate_4_map_1778240600434.png)
 
 ---
