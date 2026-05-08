@@ -142,8 +142,27 @@ def main():
     all_rows = []
     base_date = datetime(2026, 4, 23)
     
+    # Extra Instructions Check:
+    # 1. 4 Members = 8 Datasets/Routes
+    # 2. Consider FORWARD pass only
+    # 3. Fulfill Part 6 requirements (Need FR-01, FR-06, FR-08, FR-02)
+    
     unique_routes = {} # rid -> link
-    for link in pdf_links:
+    
+    # First, prioritize the routes needed for Task 6
+    priority_routes = ["FR-01", "FR-02", "FR-06", "FR-08"]
+    
+    # Filter links for Forward pass only
+    forward_links = [l for l in pdf_links if "Forward" in l]
+    
+    for rid_req in priority_routes:
+        for link in forward_links:
+            if rid_req in link:
+                unique_routes[rid_req] = link
+                break
+                
+    # Fill remaining to get to 8 routes
+    for link in forward_links:
         rid = link.split("/")[-1].split("_")[0]
         if rid not in unique_routes:
             unique_routes[rid] = link
@@ -151,7 +170,7 @@ def main():
             break
             
     selected_links = list(unique_routes.values())
-    print(f"Selected 8 routes for extraction: {list(unique_routes.keys())}")
+    print(f"Selected 8 Forward-only routes: {list(unique_routes.keys())}")
 
     for i, link in enumerate(selected_links, start=1):
         print(f"[{i}/8] Processing route...")
